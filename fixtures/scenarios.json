@@ -1,0 +1,748 @@
+{
+  "note": "Synthetic data only. llm = recorded GPT-4o output in the live JSON shape.",
+  "crm_seed": [
+    {
+      "phone": "+966533334444",
+      "email": "abdullah.test@example.com",
+      "name": "Abdullah Al-Harbi (created manually in CRM)"
+    }
+  ],
+  "scenarios": [
+    {
+      "id": 1,
+      "name": "Hot buyer",
+      "input_summary": "Landing form: العمارة التجارية بالتحلية، 8 مليون، كاش، في هذا المزاد",
+      "expected_summary": "P1, new contact + deal in Sales Ready (P1)",
+      "steps": [
+        {
+          "source": "landing_page",
+          "at": "2026-09-26T08:00:00Z",
+          "payload": {
+            "event_id": "lp-s1",
+            "campaign": "google_search_eastern_auction",
+            "submitted_at": "2026-09-26T08:00:00Z",
+            "fields": {
+              "الاسم": "خالد العتيبي",
+              "الجوال": "0551234567",
+              "البريد الإلكتروني": "khalid.test@example.com",
+              "المدينة": "الخبر",
+              "العقار المهتم به": "العمارة التجارية بالتحلية",
+              "الميزانية": "8 مليون",
+              "طريقة الدفع": "كاش",
+              "متى تنوي الشراء": "في هذا المزاد",
+              "نوع المشتري": "فرد",
+              "موافقة التواصل": "نعم"
+            }
+          },
+          "expect": {
+            "priority": "P1",
+            "contact_action": "create",
+            "deal_action": "create",
+            "stage": "Sales Ready (P1)"
+          }
+        },
+        {
+          "source": "landing_page",
+          "at": "2026-09-26T08:05:00Z",
+          "payload": {
+            "event_id": "lp-s1",
+            "campaign": "google_search_eastern_auction",
+            "submitted_at": "2026-09-26T08:00:00Z",
+            "fields": {
+              "الاسم": "خالد العتيبي",
+              "الجوال": "0551234567"
+            }
+          },
+          "expect": {
+            "status": "duplicate_ignored"
+          }
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Financing needed",
+      "input_summary": "Meta form: فيلا العقربية، بين 2 و 3 مليون، أحتاج تمويل بنكي، هذا المزاد",
+      "expected_summary": "P2 held (financing unresolved), deal in Follow-up (P2)",
+      "steps": [
+        {
+          "source": "meta_lead_ads",
+          "at": "2026-09-26T09:00:00Z",
+          "payload": {
+            "id": "meta-s2",
+            "campaign_name": "meta_eastern_province",
+            "created_time": "2026-09-26T09:00:00Z",
+            "field_data": [
+              {
+                "name": "full_name",
+                "values": [
+                  "سارة القحطاني"
+                ]
+              },
+              {
+                "name": "phone_number",
+                "values": [
+                  "0562223333"
+                ]
+              },
+              {
+                "name": "email",
+                "values": [
+                  "sara.test@example.com"
+                ]
+              },
+              {
+                "name": "which_property_are_you_interested_in?",
+                "values": [
+                  "فيلا العقربية بالخبر"
+                ]
+              },
+              {
+                "name": "budget",
+                "values": [
+                  "بين 2 و 3 مليون"
+                ]
+              },
+              {
+                "name": "payment_method",
+                "values": [
+                  "أحتاج تمويل بنكي"
+                ]
+              },
+              {
+                "name": "when_do_you_plan_to_buy?",
+                "values": [
+                  "في هذا المزاد"
+                ]
+              }
+            ]
+          },
+          "expect": {
+            "priority": "P2",
+            "financing": "financing_needed",
+            "reason_contains": "held at P2: financing unresolved",
+            "stage": "Follow-up (P2)"
+          }
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Browser (prices only)",
+      "input_summary": "WhatsApp: كم سعر الشقة؟ بس أبغى أعرف الأسعار",
+      "expected_summary": "P3; LLM reply that invents a price is blocked; safe price-policy reply",
+      "steps": [
+        {
+          "source": "whatsapp",
+          "at": "2026-09-26T10:00:00Z",
+          "payload": {
+            "object": "whatsapp_business_account",
+            "entry": [
+              {
+                "changes": [
+                  {
+                    "field": "messages",
+                    "value": {
+                      "messaging_product": "whatsapp",
+                      "contacts": [
+                        {
+                          "profile": {
+                            "name": "ريم"
+                          },
+                          "wa_id": "966577778888"
+                        }
+                      ],
+                      "messages": [
+                        {
+                          "from": "966577778888",
+                          "id": "wamid.s3",
+                          "timestamp": "1790400000",
+                          "type": "text",
+                          "text": {
+                            "body": "كم سعر الشقة؟ بس أبغى أعرف الأسعار"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "llm": {
+            "reply_ar": "سعر الشقة يبدأ من 900 ألف ريال تقريباً",
+            "extracted": {
+              "interested_asset": {
+                "value": "apt_nour_dammam",
+                "confidence": 0.8,
+                "evidence": "الشقة"
+              }
+            },
+            "intent": {
+              "value": "low",
+              "confidence": 0.85
+            },
+            "flags": {
+              "human_requested": false,
+              "price_only": true,
+              "contact_later": false,
+              "opt_out": false,
+              "not_interested": false
+            }
+          },
+          "expect": {
+            "priority": "P3",
+            "guard_blocked": true,
+            "reply_source": "template",
+            "flag": "price_only"
+          }
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Missing data",
+      "input_summary": "Landing form with only الاسم + الجوال",
+      "expected_summary": "P3 in_qualification (not disqualified); missing fields listed; deal in New Lead",
+      "steps": [
+        {
+          "source": "landing_page",
+          "at": "2026-09-26T11:00:00Z",
+          "payload": {
+            "event_id": "lp-s4",
+            "campaign": "google_search_eastern_auction",
+            "submitted_at": "2026-09-26T08:00:00Z",
+            "fields": {
+              "الاسم": "محمد الدوسري",
+              "الجوال": "0544445555"
+            }
+          },
+          "expect": {
+            "priority": "P3",
+            "qualification_status": "in_qualification",
+            "stage": "New Lead",
+            "missing_fields": [
+              "asset",
+              "budget",
+              "financing",
+              "timeline"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Duplicate across channels",
+      "input_summary": "Landing 0551112233 then WhatsApp 966551112233",
+      "expected_summary": "One contact + one deal, both sources kept",
+      "steps": [
+        {
+          "source": "landing_page",
+          "at": "2026-09-26T12:00:00Z",
+          "payload": {
+            "event_id": "lp-s5",
+            "campaign": "google_search_eastern_auction",
+            "submitted_at": "2026-09-26T08:00:00Z",
+            "fields": {
+              "الاسم": "فيصل الشمري",
+              "الجوال": "055 111 2233",
+              "العقار المهتم به": "أرض تجارية"
+            }
+          },
+          "expect": {
+            "contact_action": "create"
+          }
+        },
+        {
+          "source": "whatsapp",
+          "at": "2026-09-26T12:30:00Z",
+          "payload": {
+            "object": "whatsapp_business_account",
+            "entry": [
+              {
+                "changes": [
+                  {
+                    "field": "messages",
+                    "value": {
+                      "messaging_product": "whatsapp",
+                      "contacts": [
+                        {
+                          "profile": {
+                            "name": "Faisal"
+                          },
+                          "wa_id": "966551112233"
+                        }
+                      ],
+                      "messages": [
+                        {
+                          "from": "966551112233",
+                          "id": "wamid.s5",
+                          "timestamp": "1790401800",
+                          "type": "text",
+                          "text": {
+                            "body": "مرحبا، عبيت النموذج قبل شوي عن الأرض"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "llm": {
+            "reply_ar": "حياك الله فيصل، كم الميزانية التقريبية اللي تفكر فيها؟ وبتكون كاش ولا تمويل؟",
+            "extracted": {},
+            "intent": {
+              "value": "medium",
+              "confidence": 0.7
+            },
+            "flags": {
+              "human_requested": false,
+              "price_only": false,
+              "contact_later": false,
+              "opt_out": false,
+              "not_interested": false
+            }
+          },
+          "expect": {
+            "contact_action": "update",
+            "deal_action": "update",
+            "sources": [
+              "landing_page",
+              "whatsapp"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Natural Arabic",
+      "input_summary": "WhatsApp: أدور فيلا للعائلة في النخيل وميزانيتي تقريباً مليونين، ونبي ندخل هذا المزاد",
+      "expected_summary": "Asset, approx budget (1.7M-2.3M), timeline and intent extracted with evidence; P2 until financing known",
+      "steps": [
+        {
+          "source": "whatsapp",
+          "at": "2026-09-26T13:00:00Z",
+          "payload": {
+            "object": "whatsapp_business_account",
+            "entry": [
+              {
+                "changes": [
+                  {
+                    "field": "messages",
+                    "value": {
+                      "messaging_product": "whatsapp",
+                      "contacts": [
+                        {
+                          "profile": {
+                            "name": "أبو فهد"
+                          },
+                          "wa_id": "966501112222"
+                        }
+                      ],
+                      "messages": [
+                        {
+                          "from": "966501112222",
+                          "id": "wamid.s6",
+                          "timestamp": "1790402400",
+                          "type": "text",
+                          "text": {
+                            "body": "السلام عليكم، أدور فيلا للعائلة في النخيل وميزانيتي تقريباً مليونين، ولو المكان مناسب نبي ندخل هذا المزاد"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "llm": {
+            "reply_ar": "وعليكم السلام أبو فهد، حياك الله! فيلا النخيل من ضمن عقارات المزاد. بتكون عملية الشراء كاش ولا عن طريق تمويل؟ والشراء باسمك الشخصي ولا باسم شركة؟",
+            "extracted": {
+              "interested_asset": {
+                "value": "villa_nakheel_dammam",
+                "confidence": 0.9,
+                "evidence": "فيلا للعائلة في النخيل"
+              },
+              "budget": {
+                "raw": "تقريباً مليونين",
+                "confidence": 0.85,
+                "evidence": "تقريباً مليونين"
+              },
+              "timeline": {
+                "value": "this_auction",
+                "confidence": 0.8,
+                "evidence": "نبي ندخل هذا المزاد"
+              },
+              "investment_purpose": {
+                "value": "residence",
+                "confidence": 0.8,
+                "evidence": "للعائلة"
+              }
+            },
+            "intent": {
+              "value": "high",
+              "confidence": 0.8
+            },
+            "flags": {
+              "human_requested": false,
+              "price_only": false,
+              "contact_later": false,
+              "opt_out": false,
+              "not_interested": false
+            }
+          },
+          "expect": {
+            "interested_asset": "villa_nakheel_dammam",
+            "budget_min": 1700000,
+            "budget_max": 2300000,
+            "timeline": "this_auction",
+            "priority": "P2",
+            "reply_source": "llm"
+          }
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "name": "Changed information",
+      "input_summary": "WhatsApp: ميزانيتي مليونين… then: لا، خلها مليون ونص بالكثير",
+      "expected_summary": "Budget updated to max 1.5M, old value kept in history, reason says revised",
+      "steps": [
+        {
+          "source": "whatsapp",
+          "at": "2026-09-26T14:00:00Z",
+          "payload": {
+            "object": "whatsapp_business_account",
+            "entry": [
+              {
+                "changes": [
+                  {
+                    "field": "messages",
+                    "value": {
+                      "messaging_product": "whatsapp",
+                      "contacts": [
+                        {
+                          "profile": {
+                            "name": "نورة"
+                          },
+                          "wa_id": "966588889999"
+                        }
+                      ],
+                      "messages": [
+                        {
+                          "from": "966588889999",
+                          "id": "wamid.s7a",
+                          "timestamp": "1790406000",
+                          "type": "text",
+                          "text": {
+                            "body": "أبغى فيلا الفيحاء وميزانيتي مليونين، والدفع كاش"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "llm": {
+            "reply_ar": "ممتاز يا نورة، ناوية تدخلين المزاد الحالي ولا تفكرين بالشراء لاحقاً؟",
+            "extracted": {
+              "interested_asset": {
+                "value": "villa_fayhaa_dammam",
+                "confidence": 0.9,
+                "evidence": "فيلا الفيحاء"
+              },
+              "budget": {
+                "raw": "مليونين",
+                "confidence": 0.9,
+                "evidence": "ميزانيتي مليونين"
+              },
+              "financing": {
+                "value": "cash",
+                "confidence": 0.9,
+                "evidence": "كاش"
+              }
+            },
+            "intent": {
+              "value": "high",
+              "confidence": 0.8
+            },
+            "flags": {
+              "human_requested": false,
+              "price_only": false,
+              "contact_later": false,
+              "opt_out": false,
+              "not_interested": false
+            }
+          },
+          "expect": {
+            "budget_max": 2000000
+          }
+        },
+        {
+          "source": "whatsapp",
+          "at": "2026-09-26T14:05:00Z",
+          "payload": {
+            "object": "whatsapp_business_account",
+            "entry": [
+              {
+                "changes": [
+                  {
+                    "field": "messages",
+                    "value": {
+                      "messaging_product": "whatsapp",
+                      "contacts": [
+                        {
+                          "profile": {
+                            "name": "نورة"
+                          },
+                          "wa_id": "966588889999"
+                        }
+                      ],
+                      "messages": [
+                        {
+                          "from": "966588889999",
+                          "id": "wamid.s7b",
+                          "timestamp": "1790406300",
+                          "type": "text",
+                          "text": {
+                            "body": "لا، خلها مليون ونص بالكثير"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "llm": {
+            "reply_ar": "تمام، سجلت الميزانية بحد أقصى مليون ونص. ناوية تدخلين المزاد الحالي؟",
+            "extracted": {
+              "budget": {
+                "raw": "مليون ونص بالكثير",
+                "confidence": 0.9,
+                "evidence": "مليون ونص بالكثير"
+              }
+            },
+            "intent": {
+              "value": "high",
+              "confidence": 0.8
+            },
+            "flags": {
+              "human_requested": false,
+              "price_only": false,
+              "contact_later": false,
+              "opt_out": false,
+              "not_interested": false
+            }
+          },
+          "expect": {
+            "budget_max": 1500000,
+            "history_field": "budget_max",
+            "reason_contains": "budget was revised",
+            "reply_source": "llm"
+          }
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "name": "Existing HubSpot contact",
+      "input_summary": "Meta lead 0533334444; contact already in CRM as +966533334444",
+      "expected_summary": "Existing contact found and updated (no duplicate), deal created and linked",
+      "steps": [
+        {
+          "source": "meta_lead_ads",
+          "at": "2026-09-26T15:00:00Z",
+          "payload": {
+            "id": "meta-s8",
+            "campaign_name": "meta_eastern_province",
+            "created_time": "2026-09-26T09:00:00Z",
+            "field_data": [
+              {
+                "name": "full_name",
+                "values": [
+                  "عبدالله الحربي"
+                ]
+              },
+              {
+                "name": "phone_number",
+                "values": [
+                  "0533334444"
+                ]
+              },
+              {
+                "name": "which_property_are_you_interested_in?",
+                "values": [
+                  "عمارة سكنية في الجلوية"
+                ]
+              },
+              {
+                "name": "budget",
+                "values": [
+                  "5 مليون"
+                ]
+              },
+              {
+                "name": "payment_method",
+                "values": [
+                  "تمويل معتمد من البنك"
+                ]
+              }
+            ]
+          },
+          "expect": {
+            "contact_action": "update",
+            "existing_crm_contact": true,
+            "deal_action": "create"
+          }
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "name": "Agent uncertainty",
+      "input_summary": "WhatsApp: والله يمكن، على حسب الوضع، الله يسهل",
+      "expected_summary": "needs_review (uncertain, NOT disqualified); agent asks budget again",
+      "steps": [
+        {
+          "source": "whatsapp",
+          "at": "2026-09-26T16:00:00Z",
+          "payload": {
+            "object": "whatsapp_business_account",
+            "entry": [
+              {
+                "changes": [
+                  {
+                    "field": "messages",
+                    "value": {
+                      "messaging_product": "whatsapp",
+                      "contacts": [
+                        {
+                          "profile": {
+                            "name": "سلطان"
+                          },
+                          "wa_id": "966599990000"
+                        }
+                      ],
+                      "messages": [
+                        {
+                          "from": "966599990000",
+                          "id": "wamid.s9",
+                          "timestamp": "1790409600",
+                          "type": "text",
+                          "text": {
+                            "body": "والله يمكن، على حسب الوضع، الله يسهل"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "llm": {
+            "reply_ar": "الله يسهل أمرك يا سلطان. عشان أساعدك صح، كم الميزانية التقريبية اللي تفكر فيها؟",
+            "extracted": {
+              "budget": {
+                "raw": "على حسب الوضع",
+                "confidence": 0.3,
+                "evidence": "على حسب الوضع"
+              }
+            },
+            "intent": {
+              "value": "medium",
+              "confidence": 0.3
+            },
+            "flags": {
+              "human_requested": false,
+              "price_only": false,
+              "contact_later": false,
+              "opt_out": false,
+              "not_interested": false
+            }
+          },
+          "expect": {
+            "qualification_status": "needs_review",
+            "not_priority": "Disqualified"
+          }
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "name": "Human request",
+      "input_summary": "WhatsApp: أبي أكلم موظف لو سمحت، ما عندي وقت للأسئلة",
+      "expected_summary": "Handoff flagged even though the model missed it; P2+; handoff template reply",
+      "steps": [
+        {
+          "source": "whatsapp",
+          "at": "2026-09-26T17:00:00Z",
+          "payload": {
+            "object": "whatsapp_business_account",
+            "entry": [
+              {
+                "changes": [
+                  {
+                    "field": "messages",
+                    "value": {
+                      "messaging_product": "whatsapp",
+                      "contacts": [
+                        {
+                          "profile": {
+                            "name": "تركي"
+                          },
+                          "wa_id": "966511223344"
+                        }
+                      ],
+                      "messages": [
+                        {
+                          "from": "966511223344",
+                          "id": "wamid.s10",
+                          "timestamp": "1790413200",
+                          "type": "text",
+                          "text": {
+                            "body": "أبي أكلم موظف لو سمحت، ما عندي وقت للأسئلة"
+                          }
+                        }
+                      ]
+                    }
+                  }
+                ]
+              }
+            ]
+          },
+          "llm": {
+            "reply_ar": "أكيد! بس قبل، أي عقار يهمك؟",
+            "extracted": {},
+            "intent": {
+              "value": "medium",
+              "confidence": 0.6
+            },
+            "flags": {
+              "human_requested": false,
+              "price_only": false,
+              "contact_later": false,
+              "opt_out": false,
+              "not_interested": false
+            }
+          },
+          "expect": {
+            "flag": "human_requested",
+            "qualification_status": "handoff_requested",
+            "priority": "P2",
+            "reply_source": "template"
+          }
+        }
+      ]
+    }
+  ]
+}

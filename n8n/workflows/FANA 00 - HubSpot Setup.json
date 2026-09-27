@@ -1,0 +1,329 @@
+{
+  "name": "FANA 00 - HubSpot Setup",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "2b192bde-b9d6-48db-8040-30335e4609b8",
+      "name": "Run Setup Once",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const opt = (vals) => vals.map(([value, label], i) => ({ value, label, displayOrder: i }));\nconst text = (name, label) => ({ name, label, type: 'string', fieldType: 'text' });\nconst area = (name, label) => ({ name, label, type: 'string', fieldType: 'textarea' });\nconst num = (name, label) => ({ name, label, type: 'number', fieldType: 'number' });\nconst sel = (name, label, vals) => ({ name, label, type: 'enumeration', fieldType: 'select', options: opt(vals) });\nconst bool = (name, label) => ({ name, label, type: 'bool', fieldType: 'booleancheckbox', options: opt([['true', 'Yes'], ['false', 'No']]) });\nconst CH = [['landing_page', 'Landing page (Google Search)'], ['meta_lead_ads', 'Meta Lead Ads'], ['whatsapp', 'WhatsApp (Snapchat CTWA)']];\nconst ASSETS = [['cb_tahlia_khobar', 'عمارة تجارية - التحلية - الخبر'], ['cb_nuzha_dammam', 'عمارة تجارية - النزهة - الدمام'], ['rb_taiba_dammam', 'عمارة سكنية - طيبة - الدمام'], ['rb_jalawiyah_dammam', 'عمارة سكنية - الجلوية - الدمام'], ['villa_aqrabiyah_khobar', 'فيلا - العقربية - الخبر'], ['villa_taiba_dammam', 'فيلا - طيبة - الدمام'], ['villa_fayhaa_dammam', 'فيلا - الفيحاء - الدمام'], ['villa_nakheel_dammam', 'فيلا - النخيل - الدمام'], ['land_muraikabat_1', 'أرض تجارية - المريكبات 1'], ['land_muraikabat_2', 'أرض تجارية - المريكبات 2'], ['apt_nour_dammam', 'شقة - النور - الدمام'], ['type_villa', 'فيلا (بدون تحديد)'], ['type_apartment', 'شقة (بدون تحديد)'], ['type_residential_building', 'عمارة سكنية (بدون تحديد)'], ['type_commercial_building', 'عمارة تجارية (بدون تحديد)'], ['type_commercial_land', 'أرض تجارية (بدون تحديد)'], ['unknown', 'غير محدد']];\nconst contact = [\n  text('fana_lead_key', 'FANA Lead Key'),\n  sel('fana_lead_source', 'FANA Lead Source', CH),\n  sel('preferred_contact_method', 'Preferred Contact Method', [['call', 'Call'], ['whatsapp', 'WhatsApp'], ['email', 'Email']]),\n  sel('contact_consent', 'Contact Consent', [['granted', 'Granted'], ['denied', 'Denied']]),\n];\nconst deal = [\n  text('fana_lead_key', 'FANA Lead Key'),\n  sel('interested_asset', 'Interested Asset', ASSETS),\n  num('budget_min', 'Budget Min (SAR)'), num('budget_max', 'Budget Max (SAR)'),\n  num('qualification_score', 'Qualification Score'),\n  sel('qualification_status', 'Qualification Status', [['in_qualification', 'In qualification'], ['qualified', 'Qualified'], ['needs_review', 'Needs human review'], ['handoff_requested', 'Asked for a person'], ['disqualified', 'Disqualified']]),\n  sel('sales_priority', 'Sales Priority', [['P1', 'P1 - Hot, call now'], ['P2', 'P2 - Follow up'], ['P3', 'P3 - Nurture'], ['Disqualified', 'Disqualified']]),\n  sel('purchase_timeline', 'Purchase Timeline', [['this_auction', 'This auction'], ['within_3_months', 'Within 3 months'], ['later', 'Later'], ['unknown', 'Unknown']]),\n  sel('financial_readiness', 'Financial Readiness', [['cash', 'Cash ready'], ['financing_approved', 'Financing approved'], ['financing_in_progress', 'Financing in progress'], ['financing_needed', 'Needs financing'], ['unknown', 'Unknown']]),\n  sel('lead_channel', 'Lead Channel', CH),\n  bool('sales_handoff_ready', 'Sales Handoff Ready'),\n  area('priority_reason', 'Priority Reason'),\n  area('ai_summary', 'AI Summary'),\n];\nreturn [\n  ...contact.map(p => ({ json: { objectType: 'contacts', body: { ...p, groupName: 'contactinformation' } } })),\n  ...deal.map(p => ({ json: { objectType: 'deals', body: { ...p, groupName: 'dealinformation' } } })),\n];"
+      },
+      "id": "5c129de1-453d-4d3b-b9e6-e189210b8b4b",
+      "name": "Property Definitions",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.hubapi.com/crm/v3/properties/{{ $json.objectType }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "batching": {
+            "batch": {
+              "batchSize": 1,
+              "batchInterval": 250
+            }
+          },
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          },
+          "timeout": 15000
+        }
+      },
+      "id": "5fe93fa6-b4e3-4aa3-bc58-93715f71e52c",
+      "name": "Create Property",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        448,
+        0
+      ],
+      "credentials": {
+        "hubspotOAuth2Api": {
+          "id": "qpa56nfhAFdiCBoL",
+          "name": "HubSpot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const defs = $('Property Definitions').all();\nconst rows = $input.all().map((r, i) => {\n  const d = defs[i].json;\n  const code = r.json.statusCode;\n  const status = code === 201 ? 'created' : code === 409 ? 'already_exists' : 'error';\n  return { object: d.objectType, property: d.body.name, status, code, message: status === 'error' ? JSON.stringify(r.json.body).slice(0, 300) : '' };\n});\nreturn [{ json: { properties: rows, errors: rows.filter(r => r.status === 'error').length } }];"
+      },
+      "id": "f8eda64e-c8fb-4848-b15f-dd1e6ca3ae1e",
+      "name": "Summarize Properties",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://api.hubapi.com/crm/v3/pipelines/deals",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotOAuth2Api",
+        "options": {
+          "timeout": 15000
+        }
+      },
+      "id": "d4762651-d094-4672-8e1d-4f930c502936",
+      "name": "Get Deal Pipelines",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        880,
+        0
+      ],
+      "executeOnce": true,
+      "credentials": {
+        "hubspotOAuth2Api": {
+          "id": "qpa56nfhAFdiCBoL",
+          "name": "HubSpot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const pipes = $input.first().json.results || [];\nconst pipe = pipes.find(p => p.id === 'default') || pipes[0];\nconst wanted = [['New Lead', '0.1'], ['AI Qualifying', '0.1'], ['Follow-up (P2)', '0.3'], ['Sales Ready (P1)', '0.5'], ['Contacted', '0.6'], ['Registered to Bid', '0.8'], ['Closed Won', '1.0', true], ['Closed Lost', '0.0', true]];\nconst existing = (pipe.stages || []).map(s => s.label);\nconst alreadyDone = wanted.every(([l]) => existing.includes(l));\nconst stages = wanted.map(([label, probability, closed], i) => ({ label, displayOrder: i, metadata: closed ? { probability, isClosed: 'true' } : { probability } }));\nreturn [{ json: { pipeline_id: pipe.id, already_done: alreadyDone, body: { label: 'FANA Auction Pipeline', displayOrder: 0, stages } } }];"
+      },
+      "id": "a5c64066-7a4f-44c3-9d77-8c2135b8bab9",
+      "name": "Build Pipeline Stages",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1104,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://api.hubapi.com/crm/v3/pipelines/deals/{{ $json.pipeline_id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {
+          "response": {
+            "response": {
+              "fullResponse": true,
+              "neverError": true
+            }
+          },
+          "timeout": 15000
+        }
+      },
+      "id": "9e933e79-e74c-4733-9ee2-606ca7b3c32d",
+      "name": "Replace Pipeline Stages",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1328,
+        0
+      ],
+      "credentials": {
+        "hubspotOAuth2Api": {
+          "id": "qpa56nfhAFdiCBoL",
+          "name": "HubSpot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $input.first().json;\nconst stages = ((r.body || {}).stages || []).map(s => ({ id: s.id, label: s.label }));\nreturn [{ json: { properties: $('Summarize Properties').first().json, pipeline_status: r.statusCode, pipeline_error: r.statusCode >= 300 ? JSON.stringify(r.body).slice(0, 400) : '', stages } }];"
+      },
+      "id": "3d233576-59da-412b-a8e0-95458460a94f",
+      "name": "Setup Report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1552,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## FANA 00 - HubSpot Setup (run once)\nCreates custom Contact/Deal properties (409 = already exists, safe to re-run) and sets the deal pipeline stages: New Lead > AI Qualifying > Follow-up (P2) > Sales Ready (P1) > Contacted > Registered to Bid > Won/Lost.",
+        "height": 170,
+        "width": 560,
+        "color": 6
+      },
+      "id": "c30591a9-2e73-4039-bda7-efb627815e79",
+      "name": "Sticky Note b4cf2576",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -240
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.already_done }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          }
+        },
+        "options": {}
+      },
+      "id": "6c6fa811-13cd-49a4-a022-2b64bb9e006b",
+      "name": "Stages Already Set?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1216,
+        160
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Run Setup Once": {
+      "main": [
+        [
+          {
+            "node": "Property Definitions",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Property Definitions": {
+      "main": [
+        [
+          {
+            "node": "Create Property",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create Property": {
+      "main": [
+        [
+          {
+            "node": "Summarize Properties",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize Properties": {
+      "main": [
+        [
+          {
+            "node": "Get Deal Pipelines",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Deal Pipelines": {
+      "main": [
+        [
+          {
+            "node": "Build Pipeline Stages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Replace Pipeline Stages": {
+      "main": [
+        [
+          {
+            "node": "Setup Report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Pipeline Stages": {
+      "main": [
+        [
+          {
+            "node": "Stages Already Set?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Stages Already Set?": {
+      "main": [
+        [
+          {
+            "node": "Setup Report",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Replace Pipeline Stages",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "592835f2-d0b5-452b-ab1d-816168243618",
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "instanceId": "ee107bd7880a3e754d93f09500f5972b94c7bfac474587b7de30c168b2f3262e"
+  },
+  "nodeGroups": [],
+  "id": "WFtN3EtMj5v6yuUD",
+  "tags": []
+}

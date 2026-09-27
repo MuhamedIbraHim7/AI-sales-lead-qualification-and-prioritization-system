@@ -1,0 +1,496 @@
+{
+  "name": "FANA 02 - Arabic Qualification Agent",
+  "nodes": [
+    {
+      "parameters": {
+        "inputSource": "passthrough"
+      },
+      "id": "00945087-7a9e-468c-9d40-449989623e11",
+      "name": "Agent Input",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.lead.source === \"whatsapp\" && !!$json.lead.message_text }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "436f0f84-5070-4f34-a422-5a8689366ffe",
+      "name": "Customer Message?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        224,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "woKXvlzNNh5R8uGx",
+          "cachedResultName": "fana_conversations"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "lead_key",
+              "keyValue": "={{ $json.lead.lead_key }}"
+            }
+          ]
+        },
+        "limit": 30,
+        "orderBy": true,
+        "orderByDirection": "ASC"
+      },
+      "id": "21ab1bea-a403-4626-9f3c-93526884f46e",
+      "name": "Load Conversation",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        448,
+        112
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const inp = $('Agent Input').first().json;\nconst lead = inp.lead;\nconst ctx = inp.context || { known: {}, ask_next: [], catalog: '' };\nconst clean = s => String(s || '').replace(/[{}]/g, ' ');\nconst hist = $input.all().map(i => i.json).filter(r => r.role);\nconst fmt = v => (v && typeof v === 'object') ? [v.min, v.max, v.raw].filter(x => x).join(' / ') : v;\nconst known = Object.entries(ctx.known || {}).map(e => '- ' + e[0] + ': ' + clean(fmt(e[1]))).join('\\n') || '- nothing yet';\nconst history = hist.slice(-12).map(r => (r.role === 'user' ? 'Customer: ' : 'Assistant: ') + clean(r.text)).join('\\n') || 'first message';\n// Uncertain answers from earlier turns are clarified FIRST, before asking anything new\nconst CORE = ['asset', 'budget', 'financing', 'timeline'];\nconst unclear = (lead.uncertain_fields || []).filter(f => CORE.includes(f));\nconst ask = [...unclear, ...(ctx.ask_next || []).filter(s => !unclear.includes(s))].slice(0, 2);\nconst askNext = ask.join(', ') || 'nothing missing - thank the customer and say a sales advisor will follow up';\nconst system = [\n  'You are FANA assistant (مساعد فنا), the Arabic sales-qualification assistant of FANA for the Al Tilal Al Sharqiya auction (مزاد التلال الشرقية): an electronic real-estate auction (Infath, on the Soum platform) of 11 assets in Dammam and Al Khobar.',\n  'CATALOG - the only properties that exist (id: description):',\n  clean(ctx.catalog),\n  'STYLE: natural, warm Saudi/Gulf Arabic. Keep it short: a brief acknowledgement, then at most TWO questions, only about the items in ASK_NEXT (in that order). Never ask again about KNOWN FACTS. Use the customer name if known.',\n  'HARD RULES:',\n  '1. Never state or estimate prices, opening prices, deposits, areas, or any property detail that is not written in CATALOG. If asked about price, say prices are decided by bidding in the auction and a sales advisor will share the details and entry terms, then continue qualifying.',\n  '2. If the customer asks for a human, a person or an employee, confirm warmly that a sales advisor will contact them soon, and ask nothing else.',\n  '3. If the customer asks to be contacted later, acknowledge it and ask what time suits them.',\n  '4. If the customer says stop or do not contact me, apologise briefly and stop. If the customer is simply not interested, thank them politely and ask nothing else.',\n  '5. CLARIFY FIRST: if the LATEST CUSTOMER MESSAGE answers something vaguely (for example على حسب، يمكن، الله يسهل، ما أدري about budget, financing or timeline), your reply MUST first ask one short, friendly clarifying question about THAT item (e.g. offer rough ranges), before any other question. Never guess the value.',\n  'OUTPUT: respond with ONE JSON object only, no markdown. Keys:',\n  '- reply_ar: your Arabic message to the customer.',\n  '- extracted: an object. Include ONLY fields the customer stated in the LATEST CUSTOMER MESSAGE. Possible keys: interested_asset, budget, financing, timeline, buyer_type, investment_purpose, auction_experience, preferred_contact. Each is an object with keys value, confidence (0 to 1) and evidence (an exact short quote copied character-for-character from the latest message). budget instead uses keys raw (the exact budget words of the customer), confidence and evidence.',\n  '  Allowed values: interested_asset = a catalog id, or when no specific asset one of villa, apartment, residential_building, commercial_building, commercial_land. financing = cash, financing_approved, financing_in_progress, financing_needed. timeline = this_auction, within_3_months, later. buyer_type = individual, company. investment_purpose = residence, investment, business. auction_experience = yes, no. preferred_contact = call, whatsapp, email.',\n  '- intent: an object with keys value (high = wants to bid and is ready; medium = interested but exploring; low = only asks prices or is just browsing; unknown) and confidence.',\n  '- flags: an object with boolean keys, each true ONLY when the customer clearly says it: human_requested (asks to talk to a person/employee now); price_only (only asks about prices); contact_later (asks to be contacted at a later time); opt_out (explicitly asks to STOP messages or NOT be contacted at all, e.g. لا تتصلوا، لا تراسلوني - saying they are not interested is NOT opt_out); not_interested (says they are not interested / do not want to buy).',\n  'If you are unsure of a value, give a low confidence instead of inventing it. Never invent customer data.'\n].join('\\n');\nconst user = 'KNOWN FACTS (do not ask again):\\n' + known +\n  (unclear.length ? '\\n\\nUNCLEAR EARLIER ANSWERS (clarify these first): ' + unclear.join(', ') : '') +\n  '\\n\\nASK_NEXT: ' + askNext + '\\n\\nCONVERSATION SO FAR:\\n' + history + '\\n\\nLATEST CUSTOMER MESSAGE:\\n' + clean(lead.message_text);\nconst allCustomer = hist.filter(r => r.role === 'user').map(r => r.text).concat([lead.message_text]).join('\\n');\nreturn [{ json: { system_prompt: system, user_prompt: user, all_customer_text: allCustomer, ask_next_effective: ask } }];"
+      },
+      "id": "bbff6786-43d5-49fd-970a-9365feb35f58",
+      "name": "Build Prompt",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "pa-op",
+              "name": "op",
+              "value": "apply_ai",
+              "type": "string"
+            },
+            {
+              "id": "pa-lead",
+              "name": "lead",
+              "value": "={{ $(\"Agent Input\").first().json.lead }}",
+              "type": "object"
+            },
+            {
+              "id": "pa-ai",
+              "name": "ai",
+              "value": "={{ $json.choices ? $json.choices[0].message.content : '' }}",
+              "type": "string"
+            },
+            {
+              "id": "pa-llmerr",
+              "name": "llm_error",
+              "value": "={{ $json.error ? String($json.error.message || JSON.stringify($json.error)) : '' }}",
+              "type": "string"
+            },
+            {
+              "id": "pa-ct",
+              "name": "customer_text",
+              "value": "={{ $(\"Agent Input\").first().json.lead.message_text }}",
+              "type": "string"
+            },
+            {
+              "id": "pa-all",
+              "name": "all_customer_text",
+              "value": "={{ $(\"Build Prompt\").first().json.all_customer_text }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "f86a5a51-4289-4250-8cfb-58a2e6bf789a",
+      "name": "Prepare Apply AI",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1104,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "A29mDRvLGMTkAk3w",
+          "cachedResultName": "FANA 90 - Core Engine"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {},
+          "matchingColumns": [],
+          "schema": [],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "d0fdc7a8-e46f-4d6c-bd84-df4a9a201c50",
+      "name": "Core: Apply AI & Score",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1328,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $input.first().json;\nconst lead = r.lead;\nconst now = new Date().toISOString();\nreturn [\n  { json: { lead_key: lead.lead_key, role: 'user', text: lead.message_text, at: now, meta: JSON.stringify({ event_key: lead.last_event_key || lead.event_key }) } },\n  { json: { lead_key: lead.lead_key, role: 'assistant', text: r.reply_ar, at: now, meta: JSON.stringify({ reply_source: r.reply_source, accepted: r.report.accepted, rejected: r.report.rejected, changed: r.report.changed, guard: r.guard.violations, llm_error: $('Prepare Apply AI').first().json.llm_error }) } }\n];"
+      },
+      "id": "6e39eecb-2e36-4f9a-8cf7-209c79e74d39",
+      "name": "Conversation Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1552,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "woKXvlzNNh5R8uGx",
+          "cachedResultName": "fana_conversations"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead_key": "={{ $json.lead_key }}",
+            "role": "={{ $json.role }}",
+            "text": "={{ $json.text }}",
+            "at": "={{ $json.at }}",
+            "meta": "={{ $json.meta }}"
+          },
+          "schema": [
+            {
+              "id": "lead_key",
+              "displayName": "lead_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "role",
+              "displayName": "role",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "text",
+              "displayName": "text",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "at",
+              "displayName": "at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "meta",
+              "displayName": "meta",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "00b5849b-3396-46d2-b1d6-1d298594aede",
+      "name": "Save Conversation Turn",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1760,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const r = $('Core: Apply AI & Score').first().json;\nconst inp = $('Agent Input').first().json;\nreturn [{ json: { ok: r.ok, lead: r.lead, is_new: inp.is_new, context: r.context, reply_ar: r.reply_ar, reply_source: r.reply_source, report: r.report, guard: r.guard, llm_error: $('Prepare Apply AI').first().json.llm_error } }];"
+      },
+      "id": "ac101479-3348-4658-ad28-45df1dc65701",
+      "name": "Agent Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1984,
+        112
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "pt-reply",
+              "name": "reply_ar",
+              "value": "",
+              "type": "string"
+            },
+            {
+              "id": "pt-src",
+              "name": "reply_source",
+              "value": "none",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "id": "85ed3fe1-c41c-4ef1-b993-95505b8d5d10",
+      "name": "No Chat - Pass Through",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## FANA 02 - Arabic Qualification Agent\nLLM proposes, code decides. GPT-4o (Azure, JSON mode) writes the Arabic reply + an extraction with evidence quotes. Core Engine validates schema, allowed values and evidence, re-parses budgets, merges changes with history, re-scores, and blocks replies with invented prices (falls back to a safe template). LLM failure -> template reply, lead still saved.",
+        "height": 200,
+        "width": 620,
+        "color": 3
+      },
+      "id": "b9e75fce-576c-4f01-85ff-2eb93f70d479",
+      "name": "Sticky Note 65565564",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -208
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://agent100-resource.cognitiveservices.azure.com/openai/deployments/gpt-4o/chat/completions?api-version=2024-12-01-preview",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "azureOpenAiApi",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ messages: [{ role: 'system', content: $json.system_prompt }, { role: 'user', content: $json.user_prompt }], temperature: 0.3, max_tokens: 700, response_format: { type: 'json_object' } }) }}",
+        "options": {
+          "timeout": 30000
+        }
+      },
+      "id": "d54c250f-59b2-4e77-83b5-8bc57b182b8d",
+      "name": "Azure GPT-4o (Chat Completions)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        880,
+        112
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "azureOpenAiApi": {
+          "id": "5eAZrVVdwSXr3DlF",
+          "name": "Azure Open AI account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Agent Input": {
+      "main": [
+        [
+          {
+            "node": "Customer Message?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer Message?": {
+      "main": [
+        [
+          {
+            "node": "Load Conversation",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "No Chat - Pass Through",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Conversation": {
+      "main": [
+        [
+          {
+            "node": "Build Prompt",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Apply AI": {
+      "main": [
+        [
+          {
+            "node": "Core: Apply AI & Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Core: Apply AI & Score": {
+      "main": [
+        [
+          {
+            "node": "Conversation Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Conversation Rows": {
+      "main": [
+        [
+          {
+            "node": "Save Conversation Turn",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Conversation Turn": {
+      "main": [
+        [
+          {
+            "node": "Agent Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Prompt": {
+      "main": [
+        [
+          {
+            "node": "Azure GPT-4o (Chat Completions)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Azure GPT-4o (Chat Completions)": {
+      "main": [
+        [
+          {
+            "node": "Prepare Apply AI",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "errorWorkflow": "Zhps7P0q5FdTPgTn"
+  },
+  "versionId": "27683f17-3088-4b32-965f-707cc298ba6a",
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "instanceId": "ee107bd7880a3e754d93f09500f5972b94c7bfac474587b7de30c168b2f3262e"
+  },
+  "nodeGroups": [
+    {
+      "id": "efe234b4-07c7-40e7-bc26-c7b0de5e3176",
+      "name": "Validate & Remember",
+      "nodeIds": [
+        "d0fdc7a8-e46f-4d6c-bd84-df4a9a201c50",
+        "6e39eecb-2e36-4f9a-8cf7-209c79e74d39",
+        "00b5849b-3396-46d2-b1d6-1d298594aede",
+        "ac101479-3348-4658-ad28-45df1dc65701"
+      ],
+      "description": "Core Engine validates and scores the AI output, then both turns are stored as conversation state."
+    }
+  ],
+  "id": "cBbFlx0AJ9s0K0sH",
+  "tags": []
+}

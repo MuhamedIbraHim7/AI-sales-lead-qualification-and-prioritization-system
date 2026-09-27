@@ -1,0 +1,214 @@
+{
+  "name": "FANA 03 - Sales Queue Export",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "9e9ac6f9-2ee2-4752-b879-cd87641bc752",
+      "name": "Export Sales Queue",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1wUSNOtiF3YdhBnF",
+          "cachedResultName": "fana_leads"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": []
+        },
+        "returnAll": true
+      },
+      "id": "e2e28c0d-3132-4835-ac12-7ab7ba2e2cdd",
+      "name": "Load All Leads",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "return $input.all()\n  .filter(i => i.json.lead_json)\n  .map(i => {\n    const lead = JSON.parse(i.json.lead_json);\n    lead.hubspot_contact_id = i.json.hubspot_contact_id || lead.hubspot_contact_id || '';\n    lead.hubspot_deal_id = i.json.hubspot_deal_id || lead.hubspot_deal_id || '';\n    return { json: { op: 'rank', row: lead } };\n  });"
+      },
+      "id": "270f5539-ee0e-45cc-b423-3afc00ef95b1",
+      "name": "Prepare Rank Input",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "A29mDRvLGMTkAk3w",
+          "cachedResultName": "FANA 90 - Core Engine"
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "507da52c-8347-4600-8f44-9ed34242370b",
+      "name": "Core: Rank Queue",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        672,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const fmt = v => v >= 1e6 ? (Math.round(v / 1e4) / 100) + 'M' : Math.round(v / 1e3) + 'K';\nconst budget = r => {\n  if (r.budget_status !== 'known') return 'unknown';\n  if (r.budget_min && r.budget_max && r.budget_min !== r.budget_max) return fmt(r.budget_min) + '-' + fmt(r.budget_max) + ' SAR';\n  if (r.budget_max && !r.budget_min) return 'up to ' + fmt(r.budget_max) + ' SAR';\n  return fmt(r.budget_min || r.budget_max) + ' SAR';\n};\nconst assetAr = r => ((r.reason_ar || '').split(' | ')[(r.flags || {}).human_requested ? 2 : 1]) || '';\n// Sales can take over: ready now (P1), asked for a person, or all core facts collected\nconst handoffReady = r => r.priority !== 'Disqualified' && (r.priority === 'P1' || Boolean((r.flags || {}).human_requested) || r.qualification_status === 'qualified');\nconst nextAction = r => {\n  const f = r.flags || {};\n  if (r.priority === 'Disqualified') return 'No action - ' + (r.disqualify_reason || 'disqualified');\n  if (f.human_requested) return 'CALL NOW - customer asked for a person';\n  if (r.qualification_status === 'needs_review') return 'Review conversation and clarify: ' + (r.uncertain_fields || []).join(', ');\n  if (r.priority === 'P1') return 'CALL NOW - guide auction registration';\n  if (f.contact_later) return 'Contact later as requested';\n  if (r.priority === 'P2' && !['cash', 'financing_approved'].includes(r.financing)) return 'Follow up - resolve financing';\n  if (r.priority === 'P2') return 'Follow up - complete: ' + ((r.missing_fields || []).join(', ') || 'confirm interest');\n  return 'Nurture on WhatsApp - agent collecting: ' + ((r.missing_fields || []).join(', ') || '-');\n};\nreturn $input.all().map(i => i.json).map(r => ({ json: {\n  rank: r.rank, priority: r.priority, score: r.score, handoff_ready: handoffReady(r) ? 'YES' : 'no', next_action: nextAction(r),\n  name: r.name || '', mobile: r.mobile || '', email: r.email || '', city: r.city || '',\n  interested_asset: assetAr(r), budget: budget(r), financial_readiness: r.financing, timeline: r.timeline,\n  qualification_status: r.qualification_status, human_requested: (r.flags || {}).human_requested ? 'YES' : '',\n  reason_ar: r.reason_ar, reason_en: r.reason_en, sources: (r.sources || []).join('+'),\n  last_interaction_at: r.last_interaction_at, hubspot_contact_id: r.hubspot_contact_id, hubspot_deal_id: r.hubspot_deal_id\n} }));"
+      },
+      "id": "df3a2141-0120-462a-9ffb-bdaea699f51e",
+      "name": "Sales Queue Rows",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        880,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "fileName": "fana_sales_queue_live.csv"
+        }
+      },
+      "id": "1613c9f3-d177-4181-9f36-29b8671e8684",
+      "name": "Sales Queue CSV",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1104,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## FANA 03 - Sales Queue Export\nReads every live lead, ranks with the Core Engine (priority > asked for a person > funds readiness > score > budget > recency), and outputs a CSV with a next action and a factual reason per lead. Run manually or put on a schedule.",
+        "height": 170,
+        "width": 560,
+        "color": 2
+      },
+      "id": "b38b5d09-7e72-4aa1-b559-d9f000e6ce1e",
+      "name": "Sticky Note 50cecf5d",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -224
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {
+          "fileName": "fana_sales_queue_live.xlsx",
+          "sheetName": "Sales Queue"
+        }
+      },
+      "id": "67a5153a-8f8a-41c5-845f-8b8b236fa6f4",
+      "name": "Sales Queue Excel",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        1104,
+        208
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Export Sales Queue": {
+      "main": [
+        [
+          {
+            "node": "Load All Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load All Leads": {
+      "main": [
+        [
+          {
+            "node": "Prepare Rank Input",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Rank Input": {
+      "main": [
+        [
+          {
+            "node": "Core: Rank Queue",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Core: Rank Queue": {
+      "main": [
+        [
+          {
+            "node": "Sales Queue Rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Sales Queue Rows": {
+      "main": [
+        [
+          {
+            "node": "Sales Queue CSV",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Sales Queue Excel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "errorWorkflow": "Zhps7P0q5FdTPgTn"
+  },
+  "versionId": "8b6d7705-d64a-4745-933c-58a5d7e99ead",
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "instanceId": "ee107bd7880a3e754d93f09500f5972b94c7bfac474587b7de30c168b2f3262e"
+  },
+  "nodeGroups": [],
+  "id": "lKDAmN8s60kch1EG",
+  "tags": []
+}

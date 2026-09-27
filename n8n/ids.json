@@ -1,0 +1,25 @@
+{
+  "core": "A29mDRvLGMTkAk3w",
+  "intake": "5UjroMH9WEXzo88H",
+  "setup": "WFtN3EtMj5v6yuUD",
+  "folder": "Sql58QhSLVUu8KR7",
+  "data_tables": {
+    "fana_leads": "1wUSNOtiF3YdhBnF",
+    "fana_processed_events": "ZeHBNPD94Ak4MKiG",
+    "fana_event_log": "n3Tfs4SBnUqtIJYm",
+    "fana_conversations": "woKXvlzNNh5R8uGx"
+  },
+  "hubspot_deal_stages": {
+    "New Lead": "6144414946",
+    "AI Qualifying": "6144414947",
+    "Follow-up (P2)": "6144414948",
+    "Sales Ready (P1)": "6144414949",
+    "Contacted": "6144414950",
+    "Registered to Bid": "6144414951",
+    "Closed Won": "closedwon",
+    "Closed Lost": "closedlost"
+  },
+  "agent": "cBbFlx0AJ9s0K0sH",
+  "queue_export": "lKDAmN8s60kch1EG",
+  "error_handler": "Zhps7P0q5FdTPgTn"
+}

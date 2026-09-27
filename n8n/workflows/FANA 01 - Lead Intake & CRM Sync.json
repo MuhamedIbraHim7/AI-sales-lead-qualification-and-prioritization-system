@@ -1,0 +1,1578 @@
+{
+  "name": "FANA 01 - Lead Intake & CRM Sync",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fana/landing",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "2af95693-50a8-43e9-bb31-92897a7a89ed",
+      "name": "Landing Page Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "webhookId": "d25e1143-367c-4fe6-9e42-de2abc280023"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "tagLanding-op",
+              "name": "op",
+              "value": "normalize",
+              "type": "string"
+            },
+            {
+              "id": "tagLanding-src",
+              "name": "source",
+              "value": "landing_page",
+              "type": "string"
+            },
+            {
+              "id": "tagLanding-payload",
+              "name": "payload",
+              "value": "={{ $json.body ?? $json }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "714f83bc-361f-480a-bbbb-99aa57a037a4",
+      "name": "Tag Landing Page",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "A29mDRvLGMTkAk3w",
+          "cachedResultName": "FANA 90 - Core Engine"
+        },
+        "mode": "each",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "ecca283f-eaab-42f6-a1dd-b782067b46e9",
+      "name": "Core: Normalize",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        464,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fana/meta",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "fd486b5e-7b90-4ba5-87de-1b62a74f6d8d",
+      "name": "Meta Lead Ads Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        208
+      ],
+      "webhookId": "4290fb89-e25d-4571-a0bd-fd379d6f355c"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "tagMeta-op",
+              "name": "op",
+              "value": "normalize",
+              "type": "string"
+            },
+            {
+              "id": "tagMeta-src",
+              "name": "source",
+              "value": "meta_lead_ads",
+              "type": "string"
+            },
+            {
+              "id": "tagMeta-payload",
+              "name": "payload",
+              "value": "={{ $json.body ?? $json }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "eac0a97e-8b46-4730-92ec-0098ab12b53e",
+      "name": "Tag Meta Lead Ads",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "fana/whatsapp",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "5daeacda-930f-4beb-a92f-c3c138575b0d",
+      "name": "WhatsApp Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        400
+      ],
+      "webhookId": "1db91e2f-0d10-421d-adef-f03c517ba155"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "tagWa-op",
+              "name": "op",
+              "value": "normalize",
+              "type": "string"
+            },
+            {
+              "id": "tagWa-src",
+              "name": "source",
+              "value": "whatsapp",
+              "type": "string"
+            },
+            {
+              "id": "tagWa-payload",
+              "name": "payload",
+              "value": "={{ $json.body ?? $json }}",
+              "type": "object"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "c7b6cea6-df84-4d58-a1c6-5de3c83dd2eb",
+      "name": "Tag WhatsApp",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "f7115f65-7214-4503-8046-c7db81d5b1ee",
+      "name": "Payload Valid?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        688,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "ZeHBNPD94Ak4MKiG",
+          "cachedResultName": "fana_processed_events"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "event_key",
+              "keyValue": "={{ $json.event_key }}"
+            }
+          ]
+        },
+        "limit": 1
+      },
+      "id": "e5b9a6b5-7f36-4e73-b9e7-24db982fb70f",
+      "name": "Find Processed Event",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        912,
+        128
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.event_key }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "90710f33-c207-410a-8278-782486926a2d",
+      "name": "Already Processed?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1120,
+        128
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: \"duplicate_ignored\", event_key: $(\"Core: Normalize\").first().json.event_key, lead_key: $(\"Core: Normalize\").first().json.lead_key }) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "d5ce9d59-2ccb-4b7e-9852-66d2cb8b4462",
+      "name": "Respond Duplicate Ignored",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1344,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1wUSNOtiF3YdhBnF",
+          "cachedResultName": "fana_leads"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "lead_key",
+              "keyValue": "={{ $(\"Core: Normalize\").first().json.lead_key }}"
+            }
+          ]
+        },
+        "limit": 1
+      },
+      "id": "0c5005d0-a273-44f8-8ae3-31924e4b8464",
+      "name": "Load Existing Lead",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        1344,
+        224
+      ],
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "pm-op",
+              "name": "op",
+              "value": "merge_score",
+              "type": "string"
+            },
+            {
+              "id": "pm-in",
+              "name": "incoming",
+              "value": "={{ $(\"Core: Normalize\").first().json.lead }}",
+              "type": "object"
+            },
+            {
+              "id": "pm-ex",
+              "name": "existing_json",
+              "value": "={{ $json.lead_json ?? \"\" }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "e84cde6b-16d1-4ae0-916e-37e9002a75de",
+      "name": "Prepare Merge",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1568,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "A29mDRvLGMTkAk3w",
+          "cachedResultName": "FANA 90 - Core Engine"
+        },
+        "mode": "each",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "5c8ee1e0-9d4c-45e2-878d-4fe1a61221d2",
+      "name": "Core: Merge & Score",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1792,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const lead = $json.lead;\nconst groups = [];\nif (lead.mobile) {\n  // Exact E.164 match for contacts created by this system\n  groups.push({ filters: [{ propertyName: 'phone', operator: 'EQ', value: lead.mobile }] });\n  // HubSpot's calculated national number matches contacts typed by hand in any format\n  // (0533334444, +966-53-333-4444, 966533334444 ...). Saudi mobiles: last 9 digits.\n  if (lead.mobile.startsWith('+966')) {\n    groups.push({ filters: [{ propertyName: 'hs_searchable_calculated_phone_number', operator: 'EQ', value: lead.mobile.slice(4) }] });\n  }\n}\nif (lead.email) groups.push({ filters: [{ propertyName: 'email', operator: 'EQ', value: lead.email }] });\ngroups.push({ filters: [{ propertyName: 'fana_lead_key', operator: 'EQ', value: lead.lead_key }] });\nreturn { json: { search_body: { filterGroups: groups.slice(0, 5), limit: 1,\n  properties: ['firstname', 'lastname', 'phone', 'email', 'fana_lead_key'] } } };"
+      },
+      "id": "406e9c4d-9b64-43ac-9c8d-4f8cc535fcaa",
+      "name": "Build Search Body",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2000,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/contacts/search",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.search_body) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "472650e7-99c5-4a57-a0b0-1d9c873ce06e",
+      "name": "Search HubSpot Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        2224,
+        224
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "hubspotOAuth2Api": {
+          "id": "qpa56nfhAFdiCBoL",
+          "name": "HubSpot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const m = $('Qualify Lead (Agent)').first().json;\nconst lead = m.lead;\nconst found = ($json.results || [])[0] || null;\nconst parts = (lead.name || '').split(' ').filter(Boolean);\nconst props = {\n  firstname: parts[0], lastname: parts.slice(1).join(' ') || undefined,\n  phone: lead.mobile, email: lead.email, city: lead.city,\n  fana_lead_key: lead.lead_key, fana_lead_source: lead.first_source,\n  preferred_contact_method: lead.preferred_contact !== 'unknown' ? lead.preferred_contact : undefined,\n  contact_consent: lead.consent !== 'unknown' ? lead.consent : undefined,\n};\n// Send only known values so CRM data is never overwritten with blanks\nfor (const k of Object.keys(props)) if (props[k] === null || props[k] === undefined || props[k] === '') delete props[k];\nconst contactId = (found && found.id) || lead.hubspot_contact_id || null;\nreturn { json: { contact_id: contactId, contact_action: contactId ? 'update' : 'create',\n  existing_crm_contact: Boolean(found) && m.is_new, properties: props } };"
+      },
+      "id": "80e70ced-4ba1-455a-a728-221b745e8e64",
+      "name": "Build Contact Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2448,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          },
+          "conditions": [
+            {
+              "leftValue": "={{ $json.contact_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "b33283ff-f1aa-4cfe-81b7-e38b3cbc94c4",
+      "name": "Contact Exists?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2672,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.hubapi.com/crm/v3/objects/contacts/{{ $json.contact_id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ properties: $json.properties }) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "21a40d4a-4120-45c8-bec4-e1de2e38363c",
+      "name": "Update HubSpot Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        2880,
+        128
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "hubspotOAuth2Api": {
+          "id": "qpa56nfhAFdiCBoL",
+          "name": "HubSpot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const m = $('Qualify Lead (Agent)').first().json;\nconst c = $('Build Contact Payload').first().json;\nconst thisEvent = $('Core: Normalize').first().json;\nconst lead = m.lead;\nlead.hubspot_contact_id = String($json.id);\nlead.existing_crm_contact = Boolean(lead.existing_crm_contact || c.existing_crm_contact);\nlead.last_event_key = thisEvent.event_key;\nreturn { json: {\n  lead_key: lead.lead_key, lead_json: JSON.stringify(lead), name: lead.name || '',\n  mobile: lead.mobile || '', email: lead.email || '', priority: lead.priority, score: lead.score,\n  qualification_status: lead.qualification_status, hubspot_contact_id: lead.hubspot_contact_id,\n  hubspot_deal_id: lead.hubspot_deal_id || '', last_interaction_at: lead.last_interaction_at,\n  event_key: thisEvent.event_key, source: lead.source,\n  response: { status: 'processed', lead_key: lead.lead_key, event_key: thisEvent.event_key, is_new_lead: m.is_new,\n    reply_ar: m.reply_ar || null, reply_source: m.reply_source, ai_report: m.report || null, reply_guard: m.guard || null, llm_error: m.llm_error || '',\n    contact_action: c.contact_action, existing_crm_contact: lead.existing_crm_contact,\n    hubspot_contact_id: lead.hubspot_contact_id, sources: lead.sources, changed_fields: lead.changed_fields || [],\n    priority: lead.priority, score: lead.score, qualification_status: lead.qualification_status,\n    missing_fields: lead.missing_fields, uncertain_fields: lead.uncertain_fields, flags: lead.flags,\n    reason_ar: lead.reason_ar, reason_en: lead.reason_en, issues: lead.issues }\n} };"
+      },
+      "id": "bc16b690-6549-4c12-a62a-ab42696d0e8c",
+      "name": "Collect Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3104,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/contacts",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ properties: $json.properties }) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "55ad72cd-a4dd-4b10-8107-c149684cf566",
+      "name": "Create HubSpot Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        2880,
+        320
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "hubspotOAuth2Api": {
+          "id": "qpa56nfhAFdiCBoL",
+          "name": "HubSpot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: \"rejected\", error: $json.error }) }}",
+        "options": {
+          "responseCode": 400
+        }
+      },
+      "id": "71b4116a-dfbd-4d4b-8677-14900e66ccf2",
+      "name": "Respond 400 Malformed",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        912,
+        432
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "1wUSNOtiF3YdhBnF",
+          "cachedResultName": "fana_leads"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "lead_key",
+              "keyValue": "={{ $json.lead_key }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead_key": "={{ $json.lead_key }}",
+            "lead_json": "={{ $json.lead_json }}",
+            "name": "={{ $json.name }}",
+            "mobile": "={{ $json.mobile }}",
+            "email": "={{ $json.email }}",
+            "priority": "={{ $json.priority }}",
+            "score": "={{ $json.score }}",
+            "qualification_status": "={{ $json.qualification_status }}",
+            "hubspot_contact_id": "={{ $json.hubspot_contact_id }}",
+            "hubspot_deal_id": "={{ $json.hubspot_deal_id }}",
+            "last_interaction_at": "={{ $json.last_interaction_at }}"
+          },
+          "schema": [
+            {
+              "id": "lead_key",
+              "displayName": "lead_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_json",
+              "displayName": "lead_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "mobile",
+              "displayName": "mobile",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "priority",
+              "displayName": "priority",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "score",
+              "displayName": "score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "qualification_status",
+              "displayName": "qualification_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "hubspot_contact_id",
+              "displayName": "hubspot_contact_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "hubspot_deal_id",
+              "displayName": "hubspot_deal_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last_interaction_at",
+              "displayName": "last_interaction_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0276df55-75fc-43bc-8f6d-c8aa092772a8",
+      "name": "Save Lead",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        5184,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "ZeHBNPD94Ak4MKiG",
+          "cachedResultName": "fana_processed_events"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "event_key": "={{ $(\"Collect Result\").first().json.event_key }}",
+            "source": "={{ $(\"Collect Result\").first().json.source }}",
+            "lead_key": "={{ $(\"Collect Result\").first().json.lead_key }}",
+            "outcome": "processed",
+            "received_at": "={{ $now.toISO() }}"
+          },
+          "schema": [
+            {
+              "id": "event_key",
+              "displayName": "event_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "lead_key",
+              "displayName": "lead_key",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "outcome",
+              "displayName": "outcome",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "received_at",
+              "displayName": "received_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "31e5cc1f-0743-45ab-9c7e-78d06bc570d6",
+      "name": "Mark Event Processed",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        5408,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify($(\"Deal Result\").first().json.response) }}",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "id": "934f6d9e-2040-4bd9-9567-b22623e9fcad",
+      "name": "Respond Processed",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        5632,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## FANA 01 - Lead Intake & CRM Sync\n3 channel webhooks -> one schema via Core Engine. Idempotency: event_key checked first, recorded only AFTER HubSpot succeeds. Dedupe key: auction + E.164 mobile (else email). Contact search: phone OR email OR fana_lead_key.",
+        "height": 180,
+        "width": 560,
+        "color": 4
+      },
+      "id": "67a056a7-40a2-45b5-85c9-84e32bfc2880",
+      "name": "Sticky Note c985ff28",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -256
+      ]
+    },
+    {
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "cachedResultName": "FANA 02 - Arabic Qualification Agent",
+          "mode": "id",
+          "value": "cBbFlx0AJ9s0K0sH"
+        },
+        "mode": "each",
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      },
+      "id": "1ce92ad4-87b3-4cb3-9cef-f470cf13d023",
+      "name": "Qualify Lead (Agent)",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.3,
+      "position": [
+        1904,
+        448
+      ]
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const c = $json;\nconst lead = JSON.parse(c.lead_json);\nconst STAGE = { newLead: '6144414946', aiQualifying: '6144414947', followUp: '6144414948', salesReady: '6144414949' };\nlet stage;\nif (lead.priority === 'Disqualified') stage = 'closedlost';\nelse if (lead.priority === 'P1') stage = STAGE.salesReady;\nelse if (lead.priority === 'P2') stage = STAGE.followUp;\nelse stage = (lead.sources || []).includes('whatsapp') ? STAGE.aiQualifying : STAGE.newLead;\nconst asset = lead.interested_asset || (lead.property_type ? 'type_' + lead.property_type : 'unknown');\nconst mid = lead.budget_min && lead.budget_max ? (lead.budget_min + lead.budget_max) / 2 : (lead.budget_max || lead.budget_min || null);\nconst parts = (lead.reason_en || '').split(' | ');\n// Disqualified reasons do not contain the asset segment, so fall back to the asset id/type\nconst assetLabel = lead.priority === 'Disqualified'\n  ? (asset === 'unknown' ? 'asset unknown' : asset)\n  : (parts[(lead.flags || {}).human_requested ? 2 : 1] || 'asset unknown');\nconst f = lead.flags || {};\n// Sales can take over: ready now (P1), asked for a person, or all core facts collected\nconst handoffReady = lead.priority !== 'Disqualified' && (lead.priority === 'P1' || Boolean(f.human_requested) || lead.qualification_status === 'qualified');\nconst budgetChanges = (lead.history || []).filter(h => h.field === 'budget_max' || h.field === 'budget_min');\nconst summary = [\n  'Channels: ' + (lead.sources || []).join(', '),\n  'Qualification: ' + lead.qualification_status + (lead.missing_fields && lead.missing_fields.length ? ' (missing: ' + lead.missing_fields.join(', ') + ')' : ''),\n  'Sales handoff ready: ' + (handoffReady ? 'YES' : 'no'),\n  f.human_requested ? 'Customer asked to speak to a person.' : '',\n  f.price_only ? 'Customer asked about prices only.' : '',\n  f.contact_later ? 'Customer asked to be contacted later.' : '',\n  budgetChanges.length ? 'Budget revised: ' + budgetChanges.map(h => h.field + ' ' + h.old + ' -> ' + h.new).join('; ') : '',\n  lead.existing_crm_contact ? 'Matched an existing HubSpot contact.' : '',\n  lead.message_text ? 'Last customer message: ' + String(lead.message_text).slice(0, 240) : ''\n].filter(Boolean).join('\\n');\nconst props = {\n  dealname: 'التلال الشرقية - ' + (lead.name || lead.mobile || 'Lead') + ' - ' + assetLabel,\n  pipeline: 'default', dealstage: stage, fana_lead_key: lead.lead_key, interested_asset: asset,\n  budget_min: lead.budget_min, budget_max: lead.budget_max, amount: mid,\n  qualification_score: lead.score, qualification_status: lead.qualification_status, sales_priority: lead.priority,\n  purchase_timeline: lead.timeline, financial_readiness: lead.financing, lead_channel: lead.first_source,\n  sales_handoff_ready: handoffReady ? 'true' : 'false',\n  priority_reason: lead.reason_ar + '\\n' + lead.reason_en, ai_summary: summary\n};\nfor (const k of Object.keys(props)) if (props[k] === null || props[k] === undefined || props[k] === '') delete props[k];\nreturn { json: { deal_properties: props, contact_id: c.hubspot_contact_id, handoff_ready: handoffReady,\n  search_body: { filterGroups: [{ filters: [{ propertyName: 'fana_lead_key', operator: 'EQ', value: lead.lead_key }] }], properties: ['dealstage', 'dealname'], limit: 1 } } };"
+      },
+      "id": "d8500db0-61a5-4eab-a5c5-59b4789c9b3c",
+      "name": "Build Deal Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3456,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/deals/search",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.search_body) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "ffe5a877-50fa-4b7a-b51b-3509cbba1240",
+      "name": "Search HubSpot Deal",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        3680,
+        224
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "hubspotOAuth2Api": {
+          "id": "qpa56nfhAFdiCBoL",
+          "name": "HubSpot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "runOnceForEachItem",
+        "jsCode": "const b = $('Build Deal Payload').first().json;\nconst found = ($json.results || [])[0] || null;\n// HubSpot search is eventually consistent (new records appear after a few seconds).\n// The deal id saved on the lead is the primary key; search is the fallback for leads not yet linked.\nlet stored = null;\ntry {\n  const saved = JSON.parse($('Collect Result').first().json.lead_json).hubspot_deal_id;\n  if (saved && saved !== 'null' && saved !== 'undefined') stored = String(saved);\n} catch (e) { stored = null; }\nconst SALES_OWNED = ['6144414950', '6144414951', 'closedwon'];\nconst props = { ...b.deal_properties };\n// Never move a deal backwards once sales has advanced it (Contacted / Registered / Won)\nif (found && SALES_OWNED.includes((found.properties || {}).dealstage)) delete props.dealstage;\nconst dealId = (found && found.id) || stored || null;\nconst source = found ? 'search' : (stored ? 'stored_id' : 'new');\nreturn { json: { deal_id: dealId, deal_id_source: source, properties: props, contact_id: b.contact_id } };"
+      },
+      "id": "a9419a6b-4432-433b-b843-ba3df8ae453d",
+      "name": "Finalize Deal Payload",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3904,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.deal_id }}",
+              "operator": {
+                "operation": "notEmpty",
+                "singleValue": true,
+                "type": "string"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          }
+        },
+        "options": {}
+      },
+      "id": "6236f2e1-cbde-4452-bf7c-de9b01db86cf",
+      "name": "Deal Exists?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4112,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "=https://api.hubapi.com/crm/v3/objects/deals/{{ $json.deal_id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ properties: $json.properties }) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "7e8705aa-9132-40bf-ba51-b777304f80c9",
+      "name": "Update HubSpot Deal",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        4336,
+        144
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "hubspotOAuth2Api": {
+          "id": "qpa56nfhAFdiCBoL",
+          "name": "HubSpot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.hubapi.com/crm/v3/objects/deals",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotOAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ properties: $json.properties, associations: [{ to: { id: $json.contact_id }, types: [{ associationCategory: 'HUBSPOT_DEFINED', associationTypeId: 3 }] }] }) }}",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "c7899fa0-e295-47c8-8c88-9c760aa015ce",
+      "name": "Create HubSpot Deal",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        4336,
+        320
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "hubspotOAuth2Api": {
+          "id": "qpa56nfhAFdiCBoL",
+          "name": "HubSpot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://api.hubapi.com/crm/v4/objects/deals/{{ $json.id }}/associations/default/contacts/{{ $('Finalize Deal Payload').first().json.contact_id }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "hubspotOAuth2Api",
+        "options": {
+          "timeout": 10000
+        }
+      },
+      "id": "cd3ffaa0-d213-402c-9a87-a4996f362b2d",
+      "name": "Associate Deal With Contact",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        4560,
+        224
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "credentials": {
+        "hubspotOAuth2Api": {
+          "id": "qpa56nfhAFdiCBoL",
+          "name": "HubSpot account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const c = $('Collect Result').first().json;\nconst f = $('Finalize Deal Payload').first().json;\nconst handoffReady = $('Build Deal Payload').first().json.handoff_ready;\nlet dealId = f.deal_id;\nif (!dealId) { try { dealId = $('Create HubSpot Deal').first().json.id; } catch (e) { dealId = null; } }\nconst lead = JSON.parse(c.lead_json);\nlead.hubspot_deal_id = String(dealId);\nlead.sales_handoff_ready = handoffReady;\nreturn { json: { ...c, lead_json: JSON.stringify(lead), hubspot_deal_id: String(dealId),\n  response: { ...c.response, hubspot_deal_id: String(dealId), deal_action: f.deal_id ? 'update' : 'create',\n    deal_id_source: f.deal_id_source,\n    deal_stage: f.properties.dealstage || 'unchanged (sales-owned stage)', sales_handoff_ready: handoffReady } } };"
+      },
+      "id": "e053249d-53e8-47e0-bd13-f9357d71f8e5",
+      "name": "Deal Result",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4784,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d = $('Deal Result').first().json;\nconst lead = JSON.parse(d.lead_json);\nlet prev = {};\ntry { const row = $('Load Existing Lead').first().json; if (row && row.lead_json) prev = JSON.parse(row.lead_json); } catch (e) { prev = {}; }\n// Escalation types, most urgent first. Alert only when the type CHANGES (no spam on every message).\nconst kind = l => {\n  const fl = l.flags || {};\n  if (!l.priority || l.priority === 'Disqualified') return null;\n  if (fl.human_requested) return 'human';\n  if (l.priority === 'P1') return 'p1';\n  if (l.qualification_status === 'needs_review') return 'review';\n  return null;\n};\nconst now = kind(lead), before = kind(prev);\nconst LABEL = { human: '🙋 طلب التحدث مع موظف - اتصل الآن', p1: '🔥 عميل جاهز للمبيعات (P1)', review: '🔍 يحتاج مراجعة بشرية (إجابة غير واضحة)' };\nconst alert = Boolean(now) && now !== before;\nconst text = alert ? [\n  'FANA | ' + LABEL[now],\n  'الاسم: ' + (lead.name || '-'),\n  'الجوال: ' + (lead.mobile || '-'),\n  lead.reason_ar,\n  d.hubspot_deal_id && d.hubspot_deal_id !== 'null' ? 'HubSpot: https://app-eu1.hubspot.com/contacts/149403776/record/0-3/' + d.hubspot_deal_id : ''\n].filter(Boolean).join('\\n') : '';\nreturn [{ json: { alert, kind: now, previous_kind: before, text } }];"
+      },
+      "id": "d5e25f04-956d-49c2-b1d5-d91a81bc36d2",
+      "name": "Build Escalation Alert",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4640,
+        528
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "combinator": "and",
+          "conditions": [
+            {
+              "leftValue": "={{ $json.alert }}",
+              "operator": {
+                "operation": "true",
+                "singleValue": true,
+                "type": "boolean"
+              },
+              "rightValue": ""
+            }
+          ],
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 1
+          }
+        },
+        "options": {}
+      },
+      "id": "30fde1e6-3eba-4dd4-bd0e-0fdb80791f32",
+      "name": "Send Alert?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        4864,
+        528
+      ]
+    },
+    {
+      "parameters": {
+        "chatId": "8077776113",
+        "text": "={{ $json.text }}",
+        "additionalFields": {
+          "appendAttribution": false
+        }
+      },
+      "id": "e987fde4-d141-492c-949a-86d970738bba",
+      "name": "Telegram Sales Alert",
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        5088,
+        528
+      ],
+      "retryOnFail": true,
+      "maxTries": 2,
+      "waitBetweenTries": 2000,
+      "webhookId": "f6904158-ae77-4658-8752-31ca8469864a",
+      "credentials": {
+        "telegramApi": {
+          "id": "bVBBC2rn6AOlPtks",
+          "name": "Telegram account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Landing Page Webhook": {
+      "main": [
+        [
+          {
+            "node": "Tag Landing Page",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tag Landing Page": {
+      "main": [
+        [
+          {
+            "node": "Core: Normalize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Core: Normalize": {
+      "main": [
+        [
+          {
+            "node": "Payload Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Meta Lead Ads Webhook": {
+      "main": [
+        [
+          {
+            "node": "Tag Meta Lead Ads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tag Meta Lead Ads": {
+      "main": [
+        [
+          {
+            "node": "Core: Normalize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "WhatsApp Webhook": {
+      "main": [
+        [
+          {
+            "node": "Tag WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tag WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Core: Normalize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Payload Valid?": {
+      "main": [
+        [
+          {
+            "node": "Find Processed Event",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond 400 Malformed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Find Processed Event": {
+      "main": [
+        [
+          {
+            "node": "Already Processed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Already Processed?": {
+      "main": [
+        [
+          {
+            "node": "Respond Duplicate Ignored",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Load Existing Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Load Existing Lead": {
+      "main": [
+        [
+          {
+            "node": "Prepare Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Merge": {
+      "main": [
+        [
+          {
+            "node": "Core: Merge & Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Search Body": {
+      "main": [
+        [
+          {
+            "node": "Search HubSpot Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search HubSpot Contact": {
+      "main": [
+        [
+          {
+            "node": "Build Contact Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Contact Payload": {
+      "main": [
+        [
+          {
+            "node": "Contact Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Contact Exists?": {
+      "main": [
+        [
+          {
+            "node": "Update HubSpot Contact",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create HubSpot Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update HubSpot Contact": {
+      "main": [
+        [
+          {
+            "node": "Collect Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create HubSpot Contact": {
+      "main": [
+        [
+          {
+            "node": "Collect Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Lead": {
+      "main": [
+        [
+          {
+            "node": "Mark Event Processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mark Event Processed": {
+      "main": [
+        [
+          {
+            "node": "Respond Processed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Core: Merge & Score": {
+      "main": [
+        [
+          {
+            "node": "Qualify Lead (Agent)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Qualify Lead (Agent)": {
+      "main": [
+        [
+          {
+            "node": "Build Search Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect Result": {
+      "main": [
+        [
+          {
+            "node": "Build Deal Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Deal Payload": {
+      "main": [
+        [
+          {
+            "node": "Search HubSpot Deal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Search HubSpot Deal": {
+      "main": [
+        [
+          {
+            "node": "Finalize Deal Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Finalize Deal Payload": {
+      "main": [
+        [
+          {
+            "node": "Deal Exists?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deal Exists?": {
+      "main": [
+        [
+          {
+            "node": "Update HubSpot Deal",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Create HubSpot Deal",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update HubSpot Deal": {
+      "main": [
+        [
+          {
+            "node": "Associate Deal With Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create HubSpot Deal": {
+      "main": [
+        [
+          {
+            "node": "Associate Deal With Contact",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Associate Deal With Contact": {
+      "main": [
+        [
+          {
+            "node": "Deal Result",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Deal Result": {
+      "main": [
+        [
+          {
+            "node": "Save Lead",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Build Escalation Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Build Escalation Alert": {
+      "main": [
+        [
+          {
+            "node": "Send Alert?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Alert?": {
+      "main": [
+        [
+          {
+            "node": "Telegram Sales Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true,
+    "errorWorkflow": "Zhps7P0q5FdTPgTn"
+  },
+  "versionId": "1e5dd88a-5ada-4019-bf32-a502ca3698fb",
+  "meta": {
+    "aiBuilderAssisted": true,
+    "builderVariant": "mcp",
+    "instanceId": "ee107bd7880a3e754d93f09500f5972b94c7bfac474587b7de30c168b2f3262e"
+  },
+  "nodeGroups": [
+    {
+      "id": "89c6b357-d53c-4ac0-86be-31725e88c520",
+      "name": "Idempotency Check",
+      "nodeIds": [
+        "e5b9a6b5-7f36-4e73-b9e7-24db982fb70f",
+        "90710f33-c207-410a-8278-782486926a2d"
+      ],
+      "description": "Looks up event_key; replays go to Respond Duplicate Ignored, new events continue."
+    },
+    {
+      "id": "632b418a-f302-4288-9f24-39ab21c06fb9",
+      "name": "HubSpot Contact Upsert",
+      "nodeIds": [
+        "406e9c4d-9b64-43ac-9c8d-4f8cc535fcaa",
+        "472650e7-99c5-4a57-a0b0-1d9c873ce06e",
+        "80e70ced-4ba1-455a-a728-221b745e8e64",
+        "b33283ff-f1aa-4cfe-81b7-e38b3cbc94c4",
+        "21a40d4a-4120-45c8-bec4-e1de2e38363c",
+        "55ad72cd-a4dd-4b10-8107-c149684cf566",
+        "bc16b690-6549-4c12-a62a-ab42696d0e8c"
+      ],
+      "description": "Find by phone, email or lead key; update if found, else create. Only known values are sent."
+    },
+    {
+      "id": "857fe7af-49ce-4bbf-a8c7-07d358717c7f",
+      "name": "HubSpot Deal Upsert",
+      "nodeIds": [
+        "d8500db0-61a5-4eab-a5c5-59b4789c9b3c",
+        "ffe5a877-50fa-4b7a-b51b-3509cbba1240",
+        "a9419a6b-4432-433b-b843-ba3df8ae453d",
+        "6236f2e1-cbde-4452-bf7c-de9b01db86cf",
+        "7e8705aa-9132-40bf-ba51-b777304f80c9",
+        "c7899fa0-e295-47c8-8c88-9c760aa015ce",
+        "cd3ffaa0-d213-402c-9a87-a4996f362b2d",
+        "e053249d-53e8-47e0-bd13-f9357d71f8e5"
+      ],
+      "description": "Deal per lead (key = fana_lead_key): find, update or create with contact association. Stage from priority; never moves sales-owned stages back."
+    },
+    {
+      "id": "97e6f4cc-3779-4f7f-b4ef-38f7838e028f",
+      "name": "Sales Escalation Alert",
+      "nodeIds": [
+        "d5e25f04-956d-49c2-b1d5-d91a81bc36d2",
+        "30fde1e6-3eba-4dd4-bd0e-0fdb80791f32",
+        "e987fde4-d141-492c-949a-86d970738bba"
+      ],
+      "description": "Telegram alert when a lead turns P1, asks for a person, or needs review. Only on change; never blocks processing."
+    }
+  ],
+  "id": "5UjroMH9WEXzo88H",
+  "tags": []
+}
